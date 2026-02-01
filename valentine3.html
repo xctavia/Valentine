@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Valentine 💖</title>
+
+<style>
+:root {
+    --pink: #ff5c8a;
+    --soft: #ffe6ec;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(180deg, #ff9a9e, #fad0c4);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+/* Envelope */
+.envelope {
+    width: 90%;
+    max-width: 320px;
+    height: 220px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: pulse 2s infinite;
+    position: relative;
+}
+
+@keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+/* Letter animation */
+.letter {
+    text-align: center;
+    display: none;
+    animation: letterOpen 0.8s ease forwards;
+}
+
+@keyframes letterOpen {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.letter h2 { color: var(--pink); }
+
+/* Slideshow */
+.slideshow { display: none; }
+
+.slideshow img {
+    width: 85%;
+    max-width: 320px;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    animation: fade 1s;
+}
+
+@keyframes fade {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Proposal */
+.proposal {
+    display: none;
+    background: var(--soft);
+    text-align: center;
+}
+
+.proposal h1 {
+    color: var(--pink);
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+.buttons {
+    width: 100%;
+    max-width: 320px;
+    height: 200px;
+    position: relative;
+}
+
+button {
+    padding: 14px 28px;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+}
+
+#yes {
+    background: var(--pink);
+    color: white;
+    left: 20px;
+    bottom: 20px;
+}
+
+#no {
+    background: #aaa;
+    color: white;
+}
+
+/* Confetti */
+canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    display: none;
+}
+
+/* 💋 Kiss Animation */
+.kiss-container {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 222, 233, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 10;
+    animation: fadeIn 1s ease forwards;
+}
+
+.kiss {
+    position: relative;
+    width: 200px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.heart {
+    font-size: 4rem;
+    position: absolute;
+}
+
+.left {
+    left: -80px;
+    animation: moveLeft 1.5s ease forwards;
+}
+
+.right {
+    right: -80px;
+    animation: moveRight 1.5s ease forwards;
+}
+
+@keyframes moveLeft { to { left: 70px; } }
+@keyframes moveRight { to { right: 70px; } }
+
+.merge {
+    animation: pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Audio -->
+<audio id="bgMusic" loop>
+    <source src="song.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="paperSound">
+    <source src="paper.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Envelope -->
+<div class="screen" id="envelopeScreen">
+    <div class="envelope" onclick="openLetter()">
+        <div class="letter" id="letter">
+            <h2>My Love 💕</h2>
+            <p>
+                Every moment with you feels special.<br>
+                I made something just for you… 💖
+            </p>
+            <p><em>Tap to continue</em></p>
+        </div>
+        <p id="tapText">Tap to open 💌</p>
+    </div>
+</div>
+
+<!-- Slideshow -->
+<div class="screen slideshow" id="slideshow">
+    <img id="slide" src="">
+</div>
+
+<!-- Proposal -->
+<div class="screen proposal" id="proposal">
+    <h1>Will you be my Valentine? 💘</h1>
+    <div class="buttons">
+        <button id="yes" onclick="yesClicked()">Yes 💖</button>
+        <button id="no">No 🙈</button>
+    </div>
+</div>
+
+<!-- Kiss Scene -->
+<div id="kissScene" style="display:none;">
+    <div class="kiss-container">
+        <div class="kiss">
+            <div class="heart left">💋</div>
+            <div class="heart right">💋</div>
+        </div>
+        <h1 class="merge">Kissed & Sealed 💖</h1>
+    </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+const images = [
+    "p1.jpeg",
+    "p2.jpeg",
+    "p3.jpeg"
+];
+
+let index = 0;
+let interval;
+const noBtn = document.getElementById("no");
+
+function openLetter() {
+    bgMusic.play();
+    paperSound.play();
+    tapText.style.display = "none";
+    letter.style.display = "block";
+    document.querySelector(".envelope").onclick = startSlideshow;
+}
+
+function startSlideshow() {
+    envelopeScreen.style.display = "none";
+    slideshow.style.display = "flex";
+    showImage();
+    interval = setInterval(showImage, 2000);
+
+    setTimeout(() => {
+        clearInterval(interval);
+        slideshow.style.display = "none";
+        dropMusic();
+        proposal.style.display = "flex";
+        trapNoButton();
+    }, images.length * 2000 + 500);
+}
+
+function dropMusic() {
+    bgMusic.volume = 0.3;
+    setTimeout(() => bgMusic.volume = 0.7, 600);
+}
+
+function showImage() {
+    slide.src = images[index];
+    index = (index + 1) % images.length;
+}
+
+/* Impossible NO button */
+function moveNoButton() {
+    const maxX = innerWidth - noBtn.offsetWidth - 20;
+    const maxY = innerHeight - noBtn.offsetHeight - 20;
+    noBtn.style.left = Math.random() * maxX + "px";
+    noBtn.style.top = Math.random() * maxY + "px";
+}
+
+function trapNoButton() {
+    moveNoButton();
+    noBtn.addEventListener("touchstart", moveNoButton);
+    document.addEventListener("touchmove", e => {
+        const t = e.touches[0];
+        const r = noBtn.getBoundingClientRect();
+        if (Math.hypot(t.clientX - r.left, t.clientY - r.top) < 90) {
+            moveNoButton();
+        }
+    });
+}
+
+function yesClicked() {
+    proposal.style.display = "none";
+    startConfetti();
+    kissScene.style.display = "block";
+
+    setTimeout(() => {
+        kissScene.querySelector("h1").innerText = "Forever Starts Now 💍💖";
+    }, 3000);
+}
+
+function startConfetti() {
+    confetti.style.display = "block";
+    const ctx = confetti.getContext("2d");
+    confetti.width = innerWidth;
+    confetti.height = innerHeight;
+
+    const pieces = Array.from({length: 150}, () => ({
+        x: Math.random() * confetti.width,
+        y: Math.random() * confetti.height,
+        r: Math.random() * 6 + 3,
+        dy: Math.random() * 3 + 2
+    }));
+
+    function draw() {
+        ctx.clearRect(0,0,confetti.width,confetti.height);
+        pieces.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+            ctx.fillStyle = `hsl(${Math.random()*360},100%,70%)`;
+            ctx.fill();
+            p.y += p.dy;
+            if (p.y > confetti.height) p.y = 0;
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+}
+</script>
+
+</body>
+</html>
